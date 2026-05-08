@@ -1,0 +1,129 @@
+version: '3.8'
+
+services:
+  # PostgreSQL数据库
+  db:
+    image: postgres:15-alpine
+    container_name: car_platform_db
+    environment:
+      POSTGRES_DB: car_platform
+      POSTGRES_USER: car_user
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-car_password}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U car_user -d car_platform"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - car_platform_network
+
+  # Redis缓存
+  redis:
+    image: redis:7-alpine
+    container_name: car_platform_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - car_platform_network
+
+  # 后端API服务
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: car_platform_backend
+    environment:
+      DATABASE_URL: postgresql://car_user:${DB_PASSWORD:-car_password}@db:5432/car_platform
+      REDIS_URL: redis://redis:6379/0
+      LOG_LEVEL: info
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+      - /app/__pycache__
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    networks:
+      - car_platform_network
+    restart: unless-stopped
+
+  # 前端服务
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: car_platform_frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - car_platform_network
+    restart: unless-stopped
+
+  # 爬虫服务
+  crawler:
+    build:
+      context: ./crawler
+      dockerfile: Dockerfile
+    container_name: car_platform_crawler
+    environment:
+      DATABASE_URL: postgresql://car_user:${DB_PASSWORD:-car_password}@db:5432/car_platform
+      REDIS_URL: redis://redis:6379/0
+      LOG_LEVEL: info
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./crawler:/app
+      - crawler_logs:/app/logs
+      - crawler_images:/app/images
+    command: python scheduler.py
+    networks:
+      - car_platform_network
+    restart: unless-stopped
+
+  # Nginx反向代理
+  nginx:
+    image: nginx:alpine
+    container_name: car_platform_nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/ssl:/etc/nginx/ssl
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - car_platform_network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+  crawler_logs:
+  crawler_images:
+
+networks:
+  car_platform_network:
+    driver: bridge

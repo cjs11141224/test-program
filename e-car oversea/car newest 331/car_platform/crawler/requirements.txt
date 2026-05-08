@@ -1,0 +1,38 @@
+# Scrapy
+scrapy==2.11.0
+scrapy-user-agents==0.1.1
+
+# Database
+sqlalchemy==2.0.23
+psycopg2-binary==2.9.9
+
+# HTTP Requests
+requests==2.31.0
+urllib3==2.1.0
+
+# Scheduling
+apscheduler==3.10.4
+
+# Redis
+redis==5.0.1
+
+# Image Processing
+pillow==10.1.0
+
+# Data Processing
+pandas==2.1.3
+numpy==1.26.2
+
+# Utilities
+python-dateutil==2.8.2
+pytz==2023.3
+
+# Testing
+pytest==7.4.3
+pytest-twisted==1.14.0
+
+# Logging
+loguru==0.7.2
+
+# Proxy Support
+requests[socks]==2.31.0

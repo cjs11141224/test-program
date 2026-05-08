@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>我是谁 · 当代生存状态检测</title>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: #0b0f19;
+      color: #e8e0d5;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    .container {
+      max-width: 480px;
+      margin: 0 auto;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    /* 赛博朋克微光背景 */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: 
+        radial-gradient(ellipse at 20% 30%, rgba(100,200,255,0.04) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 70%, rgba(181,126,255,0.04) 0%, transparent 50%);
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .screen {
+      display: none;
+      flex-direction: column;
+      flex: 1;
+      padding: 28px 22px;
+      position: relative;
+      z-index: 1;
+      animation: fadeIn 0.4s ease;
+    }
+    .screen.active { display: flex; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* 首页 */
+    #home { justify-content: center; align-items: center; text-align: center; gap: 28px; }
+    .logo-icon {
+      font-size: 60px; margin-bottom: 4px;
+      filter: drop-shadow(0 0 15px rgba(100,200,255,0.3));
+    }
+    .main-title {
+      font-size: 34px; font-weight: 900; line-height: 1.2;
+      background: linear-gradient(135deg, #7cbfff, #b57eff, #ff7c7c);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .main-desc {
+      color: #8b8b9e; font-size: 15px; line-height: 1.7;
+      max-width: 320px; margin: 0 auto;
+    }
+    .question-count {
+      display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;
+      margin: 8px 0;
+    }
+    .count-pill {
+      padding: 6px 14px; border-radius: 20px;
+      background: rgba(100,200,255,0.08);
+      border: 1px solid rgba(100,200,255,0.2);
+      color: #7cbfff; font-size: 13px;
+    }
+    .start-btn {
+      width: 240px; height: 54px;
+      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+      border: none; border-radius: 27px;
+      color: #fff; font-size: 17px; font-weight: 700;
+      cursor: pointer; letter-spacing: 1px;
+      box-shadow: 0 4px 20px rgba(79,172,254,0.3);
+      transition: all 0.3s;
+    }
+    .start-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(79,172,254,0.4); }
+    .home-note { color: #555; font-size: 12px; }
+
+    /* 测试页 */
+    #quiz { gap: 0; padding-top: 16px; }
+    .quiz-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+    .progress-track { flex: 1; height: 4px; background: rgba(255,255,255,0.08); border-radius: 2px; overflow: hidden; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, #4facfe, #b57eff); border-radius: 2px; transition: width 0.3s ease; }
+    .quiz-step { font-size: 12px; color: #6b6b80; white-space: nowrap; }
+    .question-label { font-size: 12px; color: #7cbfff; margin-bottom: 10px; font-weight: 500; }
+    .question-text {
+      font-size: 20px; font-weight: 700; line-height: 1.5;
+      margin-bottom: 24px; color: #f0e8dc;
+      min-height: 60px;
+    }
+    .options { display: flex; flex-direction: column; gap: 12px; flex: 1; }
+    .opt-btn {
+      padding: 16px 18px; border-radius: 14px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+      color: #b0a898; font-size: 14px; text-align: left;
+      cursor: pointer; transition: all 0.2s; line-height: 1.6;
+    }
+    .opt-btn:hover { background: rgba(100,200,255,0.08); border-color: rgba(100,200,255,0.3); color: #fff; }
+    .opt-btn:active { transform: scale(0.98); }
+    .prev-btn {
+      margin-top: 16px; padding: 12px; border-radius: 12px;
+      background: transparent; border: 1px solid rgba(255,255,255,0.08); color: #6b6b80;
+      font-size: 13px; cursor: pointer; transition: all 0.2s;
+    }
+    .prev-btn:hover { border-color: #7cbfff; color: #7cbfff; }
+
+    /* 思考中 */
+    #thinking { justify-content: center; align-items: center; gap: 24px; text-align: center; }
+    .think-icon { font-size: 56px; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100% { transform: scale(1); opacity: 0.5; } 50% { transform: scale(1.1); opacity: 1; } }
+    .think-title { font-size: 20px; font-weight: 700; color: #7cbfff; }
+    .think-sub { font-size: 13px; color: #666; margin-top: 6px; }
+
+    /* 结果页 */
+    #result { gap: 14px; }
+    .result-card {
+      background: linear-gradient(160deg, #161b2e, #111524);
+      border: 1px solid rgba(100,200,255,0.15);
+      border-radius: 24px; padding: 26px 20px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+    }
+    .result-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 5px 14px; border-radius: 20px;
+      background: rgba(100,200,255,0.1);
+      border: 1px solid rgba(100,200,255,0.2);
+      font-size: 12px; color: #7cbfff; margin-bottom: 16px;
+    }
+    .result-type-icon { font-size: 48px; margin-bottom: 8px; }
+    .result-type-name { font-size: 28px; font-weight: 900; color: #fff; margin-bottom: 6px; }
+    .result-type-sub { font-size: 14px; color: #8b8b9e; margin-bottom: 20px; line-height: 1.5; }
+    .result-main-quote {
+      background: rgba(181,126,255,0.06);
+      border-left: 3px solid #b57eff;
+      padding: 14px 16px; border-radius: 0 12px 12px 0;
+      font-size: 14px; color: #dcd0f0; line-height: 1.7;
+      margin-bottom: 20px; font-style: italic;
+    }
+    .peer-section { margin-bottom: 16px; }
+    .peer-title { font-size: 13px; color: #6b6b80; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+    .peer-bars { display: flex; flex-direction: column; gap: 10px; }
+    .peer-row { display: flex; align-items: center; gap: 10px; }
+    .peer-label { font-size: 12px; color: #8b8b9e; width: 65px; flex-shrink: 0; text-align: right; }
+    .peer-bar-bg { flex: 1; height: 6px; background: rgba(255,255,255,0.05); border-radius: 3px; overflow: hidden; }
+    .peer-bar-fill { height: 100%; border-radius: 3px; }
+    .peer-pct { font-size: 11px; color: #666; width: 30px; text-align: right; }
+    .result-note {
+      background: rgba(255,255,255,0.03);
+      border-radius: 12px; padding: 14px;
+      font-size: 13px; color: #a0a0b0; line-height: 1.6;
+      margin-bottom: 6px;
+    }
+    .share-hint { text-align: center; color: #555; font-size: 11px; margin-top: 10px; }
+    .result-actions { display: flex; gap: 10px; margin-top: 4px; }
+    .action-btn {
+      flex: 1; padding: 14px; border-radius: 14px; font-size: 14px;
+      font-weight: 700; cursor: pointer; border: none;
+      transition: all 0.3s; text-align: center;
+    }
+    .save-btn {
+      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+      color: #fff; box-shadow: 0 4px 20px rgba(79,172,254,0.25);
+    }
+    .share-btn {
+      background: rgba(255,255,255,0.05); color: #ccc;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .action-btn:hover { transform: translateY(-2px); }
+    .retest-btn {
+      width: 100%; padding: 14px; border-radius: 14px;
+      background: transparent; border: 1px solid rgba(255,255,255,0.08); color: #6b6b80;
+      font-size: 13px; cursor: pointer; margin-top: 10px; transition: all 0.3s;
+    }
+    .retest-btn:hover { border-color: #7cbfff; color: #7cbfff; }
+
+    #toast {
+      position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+      background: rgba(0,0,0,0.9); color: #fff; padding: 12px 24px;
+      border-radius: 24px; font-size: 14px; font-weight: 600;
+      z-index: 9999; opacity: 0; transition: opacity 0.3s;
+      pointer-events: none;
+    }
+    #toast.show { opacity: 1; }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <div class="screen active" id="home">
+    <div class="logo-icon">🪫</div>
+    <div class="main-title">碳基生物生存检测</div>
+    <div class="main-desc">
+      大家看起来都在走主线剧情<br>
+      只有你感觉自己像个临时加塞的 NPC？<br><br>
+      <strong style="color:#6bde8a">这不是你的问题。世界本来就是个草台班子。</strong>
+    </div>
+    <div class="question-count">
+      <span class="count-pill">🧭 8道灵魂拷问</span>
+      <span class="count-pill">⏱ 约 2 分钟</span>
+      <span class="count-pill">🔍 8种赛博身份</span>
+    </div>
+    <button class="start-btn" onclick="startQuiz()">开始扫描你的真实状态 →</button>
+    <div class="home-note">仅限自嘲，拒绝贩卖焦虑。</div>
+  </div>
+
+  <div class="screen" id="quiz">
+    <div class="quiz-header">
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+      <div class="quiz-step" id="quizStep">1/8</div>
+    </div>
+    <div class="question-label" id="questionLabel">状态读取中...</div>
+    <div class="question-text" id="questionText"></div>
+    <div class="options" id="options"></div>
+    <button class="prev-btn" id="prevBtn" onclick="prevQ()">← 上一题</button>
+  </div>
+
+  <div class="screen" id="thinking">
+    <div class="think-icon">👁️‍🗨️</div>
+    <div class="think-title">正在解析你的生存算法...</div>
+    <div class="think-sub">不用紧张，大家都挺拧巴的。</div>
+  </div>
+
+  <div class="screen" id="result">
+    <div class="result-card" id="resultCard">
+      <div class="result-badge" id="resultBadge">📊 身份状态鉴定报告</div>
+      <div class="result-type-icon" id="resultIcon"></div>
+      <div class="result-type-name" id="resultName"></div>
+      <div class="result-type-sub" id="resultSub"></div>
+      <div class="result-main-quote" id="resultQuote"></div>
+      <div class="peer-section">
+        <div class="peer-title">📉 核心精神指标分布</div>
+        <div class="peer-bars" id="peerBars"></div>
+      </div>
+      <div class="result-note" id="resultNote"></div>
+      <div class="share-hint">长按保存图片 · 寻找世界上另一个你</div>
+    </div>
+    <div class="result-actions">
+      <button class="action-btn save-btn" onclick="saveImg()">📥 归档报告</button>
+      <button class="action-btn share-btn" onclick="shareText()">📋 复制文案</button>
+    </div>
+    <button class="retest-btn" onclick="retest()">🔄 重新扫描</button>
+  </div>
+
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ========== 题库 ==========
+const questions = [
+  {
+    label: '关于信息与欲望',
+    q: '当你看到一个极具潜力的新趋势（比如新框架、赚钱路子）时，你的常规操作是？',
+    opts: [
+      '迅速盘逻辑和参数指标，一旦发现胜率不高立刻放弃',
+      '立刻收藏云端部署教程，准备哪天在 AI Studio 上跑通，然后就在收藏夹落灰了',
+      '马上动手折腾，但遇到第一个 Bug 时就顺理成章地去打游戏了',
+      '扫一眼就滑走，反正这些风口跟我也没什么关系'
+    ]
+  },
+  {
+    label: '关于生存焦虑',
+    q: '思考你目前的居住和生活状态，最让你感到无奈的是？',
+    opts: [
+      '研究了一堆深圳安居房和公租房的申请政策，算来算去觉得自己像系统里微不足道的数据',
+      '房租占了工资一大半，但还是忍不住花大价钱买毫无用处的“情绪价值”',
+      '想过回老家，但深知自己已经无法忍受小县城缺乏技术交流和机会的氛围',
+      '试图用精确的计划控制开销，但总有意外支出把我的财务模型击穿'
+    ]
+  },
+  {
+    label: '关于社交比较',
+    q: '看到曾经不如你的同龄人突然实现了跃迁，你的内心弹幕是？',
+    opts: [
+      '“凭什么？”然后立刻开始反思自己的选股策略是不是哪里出了问题',
+      '极度焦虑，连夜给自己制定了严苛的成长计划，坚持了两天后宣布放弃',
+      '毫无波澜，我只关心五一自驾去广西的充电桩路线规划好了没',
+      '觉得他肯定也经历了非人的摧残，大家只是在展示想让人看到的一面罢了'
+    ]
+  },
+  {
+    label: '关于自我评价',
+    q: '如果把你现在的状态比作一个项目，你觉得是？',
+    opts: [
+      '一个极度脆弱的老系统：外表看着光鲜，内部全靠胶带缝合，随时会崩',
+      '一个强行 PWA 化的半成品项目：看着像模像样，但其实连核心逻辑都没写完',
+      '一个高频运作的监控脚本：不敢有丝毫停机，时刻紧绷，生怕错过任何风吹草动',
+      '一个简单的无限死循环：起床、通勤、打卡、睡觉，很多年没更新过功能了'
+    ]
+  },
+  {
+    label: '关于逃离',
+    q: '面对一个难得的、完全没有工作打扰的长假，你会？',
+    opts: [
+      '制定极其详尽的自驾游攻略，精确规划每天的电量消耗和充电站，享受掌控行程的快感',
+      '躺在床上，打开电脑想写点个人的代码，发呆半小时后关掉，刷手机到凌晨3点',
+      '试图读完买来一直没看的硬核技术书，最后拿它们垫了显示器',
+      '和工作日唯一的区别，就是换了个姿势和地点盯着屏幕'
+    ]
+  },
+  {
+    label: '关于压力反应',
+    q: '当多个麻烦同时爆发（系统宕机、股市大跌、领导发火）时，你的第一反应是？',
+    opts: [
+      '表面：“好的这就处理”，内心：“地球是个巨大的服务器，而我想拔网线”',
+      '试图在混乱中找出某种逻辑和规律，因为承认生活是随机的实在太可怕了',
+      '肾上腺素飙升，骂骂咧咧地进入极度专注状态去解决问题，事后觉得自己真贱',
+      '彻底断联。去外面吹吹风，天塌下来先等我把心跳平复下来再说'
+    ]
+  },
+  {
+    label: '关于“努力”',
+    q: '你目前和“努力”这两个字的关系是？',
+    opts: [
+      '我更喜欢配置各种云环境和提交 GitHub commit，而不是真的去面对复杂的业务逻辑',
+      '只有在死线临近或极度焦虑时，才会产生爆发式的、不可持续的努力',
+      '努力是刻在骨子里的恐惧，怕被优化，怕掉队，怕失去仅有的安全感',
+      '早就看透了努力改变不了宏观环境，所以现在只输出维持生命的最低能量'
+    ]
+  },
+  {
+    label: '关于真相',
+    q: '无论是在白天的工位，还是深夜的被窝，你心底其实知道但不愿承认的真相是？',
+    opts: [
+      '无论是每天 14:30 准时推送的量化策略，还是深夜的复盘，再严密的参数也算不出我自己人生的走向',
+      '我其实也就是个普通人，并没有什么主角光环，世界就是个草台班子',
+      '那些完美的架构和长远的计划，只是为了掩盖我当下不敢行动的怯懦',
+      '我根本没那么想赢、想暴富，我只是想停下来喘口气，不那么累而已'
+    ]
+  }
+];
+
+// ========== 身份设定 ==========
+const identityTypes = {
+  derelict: {
+    id: 'derelict', icon: '🧠', name: '高认知废物', sub: '懂了一堆底层逻辑，但连下楼拿外卖都嫌累',
+    quote: '「我的思想已经跑到罗马了，但我的执行力还在被窝里。」',
+    note: '别自责，看得太透彻本来就容易失去行动的幻觉。你需要的不是更多的方法论，而是一个哪怕再粗糙的“最小可行性行动”。',
+    scores: { anxiety: 85, logic: 95, action: 20, emptiness: 80 }
+  },
+  hustler: {
+    id: 'hustler', icon: '🪫', name: '薛定谔的奋斗者', sub: '间歇性踌躇满志，持续性混吃等死',
+    quote: '「只要我不睁眼，昨晚定下的宏伟逆袭计划就没有失败。」',
+    note: '这种仰卧起坐式的挣扎，说明你心里的火还没完全熄灭。承认自己偶尔软弱，比硬撑着强。',
+    scores: { anxiety: 90, logic: 60, action: 40, emptiness: 65 }
+  },
+  hoarder: {
+    id: 'hoarder', icon: '🐿️', name: '赛博仓鼠', sub: '收藏了等于学会了，买课了等于掌握了',
+    quote: '「在成为大佬之前，我先成为了一个无情的资料收藏夹。」',
+    note: '囤积欲其实是对失控感的补偿。放过那些吃灰的部署教程吧，哪怕只写一行跑得通的烂代码，也比收藏一万个完美架构强。',
+    scores: { anxiety: 75, logic: 70, action: 30, emptiness: 50 }
+  },
+  extra: {
+    id: 'extra', icon: '🎭', name: '草台班子群演', sub: '每天都在假装自己是个情绪稳定的大人',
+    quote: '「每天最累的不是干活，是维持‘我看起来很专业’的人设。」',
+    note: '恭喜你发现了世界的真相：这世界就是个巨大的草台班子。没有谁是完全准备好的，大家都是一边崩溃一边假装能行。',
+    scores: { anxiety: 80, logic: 50, action: 70, emptiness: 75 }
+  },
+  quant: {
+    id: 'quant', icon: '📈', name: '量化玄学信徒', sub: '试图用算法和换手率来掌控失控的生活',
+    quote: '「一切都可以被量化，除了我那跌跌不休的运气和余额。」',
+    note: '试图给混乱的生活建立一套算法，本身就是一种勇敢。但偶尔也要允许系统出现无法捕捉的 Bug，那叫生活。',
+    scores: { anxiety: 85, logic: 100, action: 65, emptiness: 40 }
+  },
+  involutionist: {
+    id: 'involutionist', icon: '🌪️', name: '被迫营业的卷王', sub: '你恨内卷，但你更怕掉队',
+    quote: '「我不想赢，我只是不敢输。」',
+    note: '你很累，因为你同时承受着“想躺”的清醒和“必须卷”的恐惧。试着放过自己，跑在中间也没关系的。',
+    scores: { anxiety: 95, logic: 70, action: 90, emptiness: 55 }
+  },
+  migratory: {
+    id: 'migratory', icon: '🚙', name: '候鸟式躺平者', sub: '上班只为筹措下一次自驾游的路费',
+    quote: '「我上班不是为了创造价值，是为了给我的远方筹集电费。」',
+    note: '别人活在当下，你活在“下一个假期”。有盼头是好事，但别忘了，哪怕是充电桩之间的赶路，也是人生的一部分。',
+    scores: { anxiety: 40, logic: 60, action: 75, emptiness: 50 }
+  },
+  npc: {
+    id: 'npc', icon: '🧍', name: 'NPC型玩家', sub: '按时触发打卡代码的背景板角色',
+    quote: '「别人在玩《模拟人生》，我只是一段按时触发的循环代码。」',
+    note: '世界上 99% 的人都是 NPC，但哪怕是 NPC，也可以给自己加上“每天喝一杯好咖啡”的隐藏设定。',
+    scores: { anxiety: 30, logic: 40, action: 35, emptiness: 90 }
+  }
+};
+
+// ========== 选项到身份的映射矩阵 ==========
+// 每一题的 4 个选项，分别给对应的身份加 1 分
+const scoringMap = [
+  [['quant','derelict'], ['hoarder'], ['hustler'], ['npc']], // Q1
+  [['npc','involutionist'], ['extra','derelict'], ['involutionist'], ['quant']], // Q2
+  [['quant','involutionist'], ['hustler'], ['migratory'], ['extra']], // Q3
+  [['extra'], ['hoarder','derelict'], ['involutionist'], ['npc']], // Q4
+  [['migratory','quant'], ['hustler'], ['hoarder'], ['npc','derelict']], // Q5
+  [['extra'], ['quant'], ['involutionist'], ['migratory']], // Q6
+  [['hoarder'], ['hustler'], ['involutionist'], ['npc','derelict']], // Q7
+  [['quant','derelict'], ['extra','npc'], ['hoarder','hustler'], ['migratory','involutionist']] // Q8
+];
+
+// ========== 状态 ==========
+let currentQ = 0;
+let answers = [];
+let scores = { derelict:0, hustler:0, hoarder:0, extra:0, quant:0, involutionist:0, migratory:0, npc:0 };
+
+function startQuiz() {
+  currentQ = 0;
+  answers = [];
+  for(let key in scores) scores[key] = 0;
+  showScreen('quiz');
+  renderQ();
+}
+
+function renderQ() {
+  const q = questions[currentQ];
+  document.getElementById('progressFill').style.width = ((currentQ) / 8 * 100) + '%';
+  document.getElementById('quizStep').textContent = `${currentQ + 1}/8`;
+  document.getElementById('questionLabel').textContent = q.label;
+  document.getElementById('questionText').textContent = q.q;
+  
+  const optsEl = document.getElementById('options');
+  optsEl.innerHTML = '';
+  q.opts.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'opt-btn';
+    btn.textContent = opt;
+    btn.onclick = () => selectOpt(i);
+    optsEl.appendChild(btn);
+  });
+  document.getElementById('prevBtn').style.display = currentQ > 0 ? 'block' : 'none';
+}
+
+function selectOpt(idx) {
+  answers[currentQ] = idx;
+  setTimeout(() => {
+    if (currentQ < 7) {
+      currentQ++;
+      renderQ();
+    } else {
+      document.getElementById('progressFill').style.width = '100%';
+      calculateResult();
+      showThinking();
+    }
+  }, 250);
+}
+
+function prevQ() {
+  if (currentQ > 0) { currentQ--; renderQ(); }
+}
+
+function calculateResult() {
+  for(let key in scores) scores[key] = 0;
+  answers.forEach((ansIdx, qIdx) => {
+    const typesToAdd = scoringMap[qIdx][ansIdx];
+    typesToAdd.forEach(t => scores[t]++);
+  });
+}
+
+function showThinking() {
+  showScreen('thinking');
+  setTimeout(() => { showResult(); }, 2500);
+}
+
+function showResult() {
+  // 找出得分最高的身份
+  let maxScore = -1;
+  let finalId = 'npc';
+  for (let id in scores) {
+    if (scores[id] > maxScore) {
+      maxScore = scores[id];
+      finalId = id;
+    }
+  }
+
+  // 最后一题权重兜底：如果最高分有很多个平局，让最后一题的选项优先
+  const lastQTypes = scoringMap[7][answers[7]];
+  if (lastQTypes.includes(finalId) === false) {
+     for(let id of lastQTypes) {
+         if(scores[id] === maxScore) finalId = id; 
+     }
+  }
+
+  const type = identityTypes[finalId];
+
+  document.getElementById('resultIcon').textContent = type.icon;
+  document.getElementById('resultName').textContent = type.name;
+  document.getElementById('resultSub').textContent = type.sub;
+  document.getElementById('resultQuote').textContent = type.quote;
+  document.getElementById('resultNote').textContent = type.note;
+
+  // 渲染五维图数据条
+  const peerBars = document.getElementById('peerBars');
+  const dimMap = [
+    { key: 'anxiety', label: '内耗指数', color: '#ff7c7c' },
+    { key: 'logic', label: '逻辑自洽', color: '#7cbfff' },
+    { key: 'action', label: '执行力', color: '#6bde8a' },
+    { key: 'emptiness', label: '虚无感', color: '#b57eff' }
+  ];
+  peerBars.innerHTML = '';
+  dimMap.forEach(d => {
+    const val = type.scores[d.key];
+    const row = document.createElement('div');
+    row.className = 'peer-row';
+    row.innerHTML = `
+      <div class="peer-label">${d.label}</div>
+      <div class="peer-bar-bg">
+        <div class="peer-bar-fill" style="width:${val}%;background:${d.color}"></div>
+      </div>
+      <div class="peer-pct">${val}%</div>`;
+    peerBars.appendChild(row);
+  });
+
+  showScreen('result');
+}
+
+function saveImg() {
+  const card = document.getElementById('resultCard');
+  html2canvas(card, { backgroundColor: null, scale: 2 }).then(canvas => {
+    const link = document.createElement('a');
+    link.download = '我的生存状态报告.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    showToast('💾 报告已归档！');
+  }).catch(() => {
+    showToast('保存失败，请长按截图分享');
+  });
+}
+
+function shareText() {
+  const icon = document.getElementById('resultIcon').textContent;
+  const name = document.getElementById('resultName').textContent;
+  const sub = document.getElementById('resultSub').textContent;
+  const text = `我测了【碳基生物生存检测】\n\n鉴定结果：${icon} ${name}\n「${sub}」\n\n这不是我的问题，世界本来就是个草台班子。\n你也来扫描一下真实状态？🔗`;
+  
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(() => {
+      showToast('📋 文案已复制进剪贴板！');
+    });
+  }
+}
+
+function retest() { showScreen('home'); }
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+</script>
+</body>
+</html>

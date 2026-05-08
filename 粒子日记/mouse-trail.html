@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mouse Trail Particle Effect</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            overflow: hidden;
+            background: #000;
+            font-family: Arial, sans-serif;
+        }
+        #canvas {
+            display: block;
+            cursor: none;
+        }
+        #instructions {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            color: #fff;
+            font-size: 14px;
+            z-index: 100;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    <div id="instructions">Move your mouse to create a golden trail</div>
+
+    <script src="https://cdn.jsdelivr.net/npm/lil-gui@0.19.2/dist/lil-gui.umd.min.js"></script>
+    <script>
+        // Canvas setup
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        // Set canvas size
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // Particle class
+        class Particle {
+            constructor(x, y, vx, vy, config) {
+                this.x = x;
+                this.y = y;
+                this.vx = vx;
+                this.vy = vy;
+                this.config = config;
+                this.lifetime = 0;
+                this.maxLifetime = config.lifetime;
+                this.initialSize = config.particleSize;
+                this.size = this.initialSize;
+            }
+
+            update(deltaTime) {
+                this.lifetime += deltaTime;
+                
+                // Update position
+                this.x += this.vx;
+                this.y += this.vy;
+                
+                // Apply gravity
+                this.vy += this.config.gravity;
+                
+                // Linear shrink
+                const progress = this.lifetime / this.maxLifetime;
+                this.size = this.initialSize * (1 - progress);
+                
+                // Slight velocity damping
+                this.vx *= 0.98;
+                this.vy *= 0.98;
+            }
+
+            draw(ctx, config) {
+                const progress = this.lifetime / this.maxLifetime;
+                
+                // Color ramp: white → gold → transparent
+                let r, g, b, a;
+                
+                if (progress < 0.3) {
+                    // White to gold
+                    const t = progress / 0.3;
+                    r = 255;
+                    g = 255;
+                    b = 255 - t * 100;
+                    a = 1 - progress * 0.3;
+                } else {
+                    // Gold to transparent
+                    const t = (progress - 0.3) / 0.7;
+                    r = config.color.r;
+                    g = config.color.g;
+                    b = config.color.b;
+                    a = 1 - progress;
+                }
+                
+                // Apply custom color
+                r = Math.min(255, r + config.color.r * progress * 0.5);
+                g = Math.min(255, g + config.color.g * progress * 0.5);
+                b = Math.min(255, b + config.color.b * progress * 0.5);
+                
+                ctx.save();
+                ctx.globalCompositeOperation = 'lighter';
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, Math.max(0.1, this.size), 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${a})`;
+                ctx.fill();
+                ctx.restore();
+            }
+
+            isDead() {
+                return this.lifetime >= this.maxLifetime || this.size <= 0.1;
+            }
+        }
+
+        // Particle system
+        class ParticleSystem {
+            constructor() {
+                this.particles = [];
+                this.mouseX = 0;
+                this.mouseY = 0;
+                this.prevMouseX = 0;
+                this.prevMouseY = 0;
+                this.lastTime = performance.now();
+                
+                // Configuration
+                this.config = {
+                    lifetime: 0.8,
+                    particleSize: 8,
+                    gravity: 0.1,
+                    particlesPerFrame: 10,
+                    color: { r: 255, g: 215, b: 0 } // Gold color
+                };
+
+                this.setupMouse();
+                this.setupGUI();
+            }
+
+            setupMouse() {
+                canvas.addEventListener('mousemove', (e) => {
+                    this.prevMouseX = this.mouseX;
+                    this.prevMouseY = this.mouseY;
+                    this.mouseX = e.clientX;
+                    this.mouseY = e.clientY;
+                });
+
+                canvas.addEventListener('touchmove', (e) => {
+                    e.preventDefault();
+                    const touch = e.touches[0];
+                    this.prevMouseX = this.mouseX;
+                    this.prevMouseY = this.mouseY;
+                    this.mouseX = touch.clientX;
+                    this.mouseY = touch.clientY;
+                });
+            }
+
+            setupGUI() {
+                const gui = new lil.GUI();
+                
+                gui.add(this.config, 'lifetime', 0.2, 2.0).name('Lifetime (s)');
+                gui.add(this.config, 'particleSize', 2, 20).name('Particle Size');
+                gui.add(this.config, 'gravity', 0, 0.5).name('Gravity');
+                gui.add(this.config, 'particlesPerFrame', 1, 30).name('Particles/Frame');
+                
+                const colorFolder = gui.addFolder('Color');
+                colorFolder.add(this.config.color, 'r', 0, 255).name('Red');
+                colorFolder.add(this.config.color, 'g', 0, 255).name('Green');
+                colorFolder.add(this.config.color, 'b', 0, 255).name('Blue');
+                colorFolder.open();
+            }
+
+            spawnParticles() {
+                const vx = (this.mouseX - this.prevMouseX) * 0.3;
+                const vy = (this.mouseY - this.prevMouseY) * 0.3;
+                
+                for (let i = 0; i < this.config.particlesPerFrame; i++) {
+                    // Add randomness to spawn position
+                    const offsetX = (Math.random() - 0.5) * 10;
+                    const offsetY = (Math.random() - 0.5) * 10;
+                    
+                    // Add randomness to velocity
+                    const randomVx = vx + (Math.random() - 0.5) * 2;
+                    const randomVy = vy + (Math.random() - 0.5) * 2;
+                    
+                    this.particles.push(new Particle(
+                        this.mouseX + offsetX,
+                        this.mouseY + offsetY,
+                        randomVx,
+                        randomVy,
+                        { ...this.config }
+                    ));
+                }
+            }
+
+            update(deltaTime) {
+                this.spawnParticles();
+                
+                // Update particles and remove dead ones
+                this.particles = this.particles.filter(particle => {
+                    particle.update(deltaTime);
+                    return !particle.isDead();
+                });
+            }
+
+            draw(ctx) {
+                // Clear canvas with fade effect
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                // Draw particles
+                this.particles.forEach(particle => {
+                    particle.draw(ctx, this.config);
+                });
+            }
+
+            animate() {
+                const currentTime = performance.now();
+                const deltaTime = (currentTime - this.lastTime) / 1000;
+                this.lastTime = currentTime;
+
+                this.update(deltaTime);
+                this.draw(ctx);
+
+                requestAnimationFrame(() => this.animate());
+            }
+
+            start() {
+                this.animate();
+            }
+        }
+
+        // Initialize and start
+        const particleSystem = new ParticleSystem();
+        particleSystem.start();
+    </script>
+</body>
+</html>
