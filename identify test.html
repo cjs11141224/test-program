@@ -10,7 +10,7 @@
     body {
       font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
       background: #0b0f19;
-      color: #e8e0d5;
+      color: #c8d4e2;
       min-height: 100vh;
       overflow-x: hidden;
     }
@@ -94,7 +94,7 @@
     .question-label { font-size: 12px; color: #7cbfff; margin-bottom: 10px; font-weight: 500; }
     .question-text {
       font-size: 20px; font-weight: 700; line-height: 1.5;
-      margin-bottom: 24px; color: #f0e8dc;
+      margin-bottom: 24px; color: #dce4f0;
       min-height: 60px;
     }
     .options { display: flex; flex-direction: column; gap: 12px; flex: 1; }
@@ -102,7 +102,7 @@
       padding: 16px 18px; border-radius: 14px;
       background: rgba(255,255,255,0.03);
       border: 1px solid rgba(255,255,255,0.06);
-      color: #b0a898; font-size: 14px; text-align: left;
+      color: #8494a8; font-size: 14px; text-align: left;
       cursor: pointer; transition: all 0.2s; line-height: 1.6;
     }
     .opt-btn:hover { background: rgba(100,200,255,0.08); border-color: rgba(100,200,255,0.3); color: #fff; }
@@ -143,7 +143,7 @@
       background: rgba(181,126,255,0.06);
       border-left: 3px solid #b57eff;
       padding: 14px 16px; border-radius: 0 12px 12px 0;
-      font-size: 14px; color: #dcd0f0; line-height: 1.7;
+      font-size: 14px; color: #c8d8f0; line-height: 1.7;
       margin-bottom: 20px; font-style: italic;
     }
     .peer-section { margin-bottom: 16px; }
@@ -161,6 +161,17 @@
       margin-bottom: 6px;
     }
     .share-hint { text-align: center; color: #555; font-size: 11px; margin-top: 10px; }
+    .qr-section {
+      text-align: center; padding: 18px 0 8px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      margin-top: 16px;
+    }
+    .qr-title { font-size: 13px; color: #7cbfff; margin-bottom: 12px; font-weight: 600; }
+    .qr-code {
+      width: 160px; height: 160px; border-radius: 12px;
+      background: #fff; padding: 8px; margin: 0 auto; display: block;
+    }
+    .qr-hint { font-size: 11px; color: #555; margin-top: 10px; }
     .result-actions { display: flex; gap: 10px; margin-top: 4px; }
     .action-btn {
       flex: 1; padding: 14px; border-radius: 14px; font-size: 14px;
@@ -238,10 +249,15 @@
       <div class="result-type-sub" id="resultSub"></div>
       <div class="result-main-quote" id="resultQuote"></div>
       <div class="peer-section">
-        <div class="peer-title">📉 核心精神指标分布</div>
+        <div class="peer-title">📉 你的四维画像</div>
         <div class="peer-bars" id="peerBars"></div>
       </div>
       <div class="result-note" id="resultNote"></div>
+      <div class="qr-section" id="qrSection">
+        <div class="qr-title">📱 扫码直接开测</div>
+        <img class="qr-code" id="qrCode" alt="扫码打开测试" />
+        <div class="qr-hint">分享给朋友，看看他们是什么身份</div>
+      </div>
       <div class="share-hint">长按保存图片 · 寻找世界上另一个你</div>
     </div>
     <div class="result-actions">
@@ -259,83 +275,83 @@
 // ========== 题库 ==========
 const questions = [
   {
-    label: '关于信息与欲望',
-    q: '当你看到一个极具潜力的新趋势（比如新框架、赚钱路子）时，你的常规操作是？',
+    label: '信息焦虑',
+    q: '当你刷到一个看起来很有搞头的新趋势（比如副业路子、投资风口）时，你的第一反应是？',
     opts: [
-      '迅速盘逻辑和参数指标，一旦发现胜率不高立刻放弃',
-      '立刻收藏云端部署教程，准备哪天在 AI Studio 上跑通，然后就在收藏夹落灰了',
-      '马上动手折腾，但遇到第一个 Bug 时就顺理成章地去打游戏了',
-      '扫一眼就滑走，反正这些风口跟我也没什么关系'
+      '迅速分析利弊和可行性，一旦觉得胜算不大就果断放弃',
+      '立刻收藏教程和攻略，列入”有空就学”清单，然后再也没打开过',
+      '马上热血上头开始搞，但遇到第一个困难就顺势放弃了',
+      '扫一眼就划走，反正这些东西跟我没什么关系'
     ]
   },
   {
-    label: '关于生存焦虑',
-    q: '思考你目前的居住和生活状态，最让你感到无奈的是？',
+    label: '生活压力',
+    q: '想想你现在的居住和钱的状态，最让你无奈的是？',
     opts: [
-      '研究了一堆深圳安居房和公租房的申请政策，算来算去觉得自己像系统里微不足道的数据',
-      '房租占了工资一大半，但还是忍不住花大价钱买毫无用处的“情绪价值”',
-      '想过回老家，但深知自己已经无法忍受小县城缺乏技术交流和机会的氛围',
-      '试图用精确的计划控制开销，但总有意外支出把我的财务模型击穿'
+      '算了各种政策补贴和贷款方案，越算越觉得自己像个被筛来筛去的数据',
+      '工资大半交了房租月供，但还是控制不住买一堆没用的东西来安慰自己',
+      '想过离开大城市，但深知自己已经回不去那个没有机会和圈子的老家了',
+      '精打细算做了一堆计划，但总有意外支出把我的生活打回原形'
     ]
   },
   {
-    label: '关于社交比较',
-    q: '看到曾经不如你的同龄人突然实现了跃迁，你的内心弹幕是？',
+    label: '比较心',
+    q: '看到曾经不如你的人突然混得比你好，你的内心弹幕是？',
     opts: [
-      '“凭什么？”然后立刻开始反思自己的选股策略是不是哪里出了问题',
-      '极度焦虑，连夜给自己制定了严苛的成长计划，坚持了两天后宣布放弃',
-      '毫无波澜，我只关心五一自驾去广西的充电桩路线规划好了没',
-      '觉得他肯定也经历了非人的摧残，大家只是在展示想让人看到的一面罢了'
+      '”凭什么？”然后开始复盘自己的人生选择是不是哪里出了问题',
+      '极度焦虑，连夜给自己制定逆袭计划，坚持两天后恢复原样',
+      '毫无波澜，我只关心下个假期去哪玩、路线规划好了没',
+      '觉得谁都不容易，大家只是把好的一面晒出来了而已'
     ]
   },
   {
-    label: '关于自我评价',
-    q: '如果把你现在的状态比作一个项目，你觉得是？',
+    label: '自我感觉',
+    q: '如果把你现在的状态比作一样东西，你觉得最像？',
     opts: [
-      '一个极度脆弱的老系统：外表看着光鲜，内部全靠胶带缝合，随时会崩',
-      '一个强行 PWA 化的半成品项目：看着像模像样，但其实连核心逻辑都没写完',
-      '一个高频运作的监控脚本：不敢有丝毫停机，时刻紧绷，生怕错过任何风吹草动',
-      '一个简单的无限死循环：起床、通勤、打卡、睡觉，很多年没更新过功能了'
+      '一件缝缝补补的旧外套：外面看着还过得去，里面全是线头',
+      '一个塞得满满当当的杂物间：什么都往里扔，但从来没真正整理过',
+      '一根绷到极限的橡皮筋：不敢松懈，时刻担心下一秒就会断掉',
+      '一台自动播放的收音机：每天说的话做的事，和昨天没什么不同'
     ]
   },
   {
-    label: '关于逃离',
-    q: '面对一个难得的、完全没有工作打扰的长假，你会？',
+    label: '放空时间',
+    q: '面对一个难得的长假，完全没有工作和琐事打扰，你会？',
     opts: [
-      '制定极其详尽的自驾游攻略，精确规划每天的电量消耗和充电站，享受掌控行程的快感',
-      '躺在床上，打开电脑想写点个人的代码，发呆半小时后关掉，刷手机到凌晨3点',
-      '试图读完买来一直没看的硬核技术书，最后拿它们垫了显示器',
-      '和工作日唯一的区别，就是换了个姿势和地点盯着屏幕'
+      '制定详尽的旅行攻略，精确规划每一天的路线和花销，享受掌控感',
+      '瘫在床上刷手机，心里想着该干点正事，但身体完全不想动，刷到凌晨',
+      '试图清空收藏夹里攒了好几年没看的电影和书，最后打开了综艺',
+      '和工作日唯一的区别，就是换了个姿势和地点看屏幕'
     ]
   },
   {
-    label: '关于压力反应',
-    q: '当多个麻烦同时爆发（系统宕机、股市大跌、领导发火）时，你的第一反应是？',
+    label: '压力来了',
+    q: '当多个麻烦同时爆发（工作出错、感情出问题、家里出事）时，你的第一反应是？',
     opts: [
-      '表面：“好的这就处理”，内心：“地球是个巨大的服务器，而我想拔网线”',
-      '试图在混乱中找出某种逻辑和规律，因为承认生活是随机的实在太可怕了',
-      '肾上腺素飙升，骂骂咧咧地进入极度专注状态去解决问题，事后觉得自己真贱',
-      '彻底断联。去外面吹吹风，天塌下来先等我把心跳平复下来再说'
+      '表面：”好的我来处理”，内心：”我想原地消失”',
+      '试图在混乱中找出规律和逻辑，因为承认生活是随机的实在太可怕了',
+      '肾上腺素飙升，骂骂咧咧地进入战斗状态，解决后觉得自己真是欠的',
+      '彻底消失。去外面走走，天塌下来也等我先喘口气再说'
     ]
   },
   {
-    label: '关于“努力”',
-    q: '你目前和“努力”这两个字的关系是？',
+    label: '努力这件事',
+    q: '你和”努力”这两个字的关系，最接近哪一种？',
     opts: [
-      '我更喜欢配置各种云环境和提交 GitHub commit，而不是真的去面对复杂的业务逻辑',
-      '只有在死线临近或极度焦虑时，才会产生爆发式的、不可持续的努力',
-      '努力是刻在骨子里的恐惧，怕被优化，怕掉队，怕失去仅有的安全感',
-      '早就看透了努力改变不了宏观环境，所以现在只输出维持生命的最低能量'
+      '我更喜欢做准备——列清单、买装备、看攻略，而不是真的开始干',
+      '只有在火烧眉毛或极度焦虑时，才会爆发几天高强度的努力',
+      '努力是刻在骨子里的恐惧，怕被淘汰，怕掉队，怕失去仅有的一点安全感',
+      '早就看透了个人努力改变不了什么，现在只出维持生活的最低功率'
     ]
   },
   {
-    label: '关于真相',
-    q: '无论是在白天的工位，还是深夜的被窝，你心底其实知道但不愿承认的真相是？',
+    label: '心里话',
+    q: '无论是在白天的工位，还是深夜的被窝，你心底其实知道但不愿承认的是？',
     opts: [
-      '无论是每天 14:30 准时推送的量化策略，还是深夜的复盘，再严密的参数也算不出我自己人生的走向',
-      '我其实也就是个普通人，并没有什么主角光环，世界就是个草台班子',
-      '那些完美的架构和长远的计划，只是为了掩盖我当下不敢行动的怯懦',
-      '我根本没那么想赢、想暴富，我只是想停下来喘口气，不那么累而已'
+      '不管多努力地规划、复盘、总结经验，也算不准自己人生的下一步',
+      '我其实也就是个普通人，没有什么主角光环，世界就是个大草台班子',
+      '那些完美的计划和长远的设想，只是为了掩盖我当下不敢迈出第一步的胆怯',
+      '我根本没那么想成功、想暴富，我只是想停下来喘口气，不那么累而已'
     ]
   }
 ];
@@ -343,9 +359,9 @@ const questions = [
 // ========== 身份设定 ==========
 const identityTypes = {
   derelict: {
-    id: 'derelict', icon: '🧠', name: '高认知废物', sub: '懂了一堆底层逻辑，但连下楼拿外卖都嫌累',
-    quote: '「我的思想已经跑到罗马了，但我的执行力还在被窝里。」',
-    note: '别自责，看得太透彻本来就容易失去行动的幻觉。你需要的不是更多的方法论，而是一个哪怕再粗糙的“最小可行性行动”。',
+    id: 'derelict', icon: '🧠', name: '高认知废物', sub: '懂了一堆大道理，但连下楼拿外卖都嫌累',
+    quote: '「我的脑子已经跑到罗马了，但我的行动力还在被窝里。」',
+    note: '别自责，看得太透，反而懒得动。你需要的不是更多道理，是哪怕先做一小步。',
     scores: { anxiety: 85, logic: 95, action: 20, emptiness: 80 }
   },
   hustler: {
@@ -357,7 +373,7 @@ const identityTypes = {
   hoarder: {
     id: 'hoarder', icon: '🐿️', name: '赛博仓鼠', sub: '收藏了等于学会了，买课了等于掌握了',
     quote: '「在成为大佬之前，我先成为了一个无情的资料收藏夹。」',
-    note: '囤积欲其实是对失控感的补偿。放过那些吃灰的部署教程吧，哪怕只写一行跑得通的烂代码，也比收藏一万个完美架构强。',
+    note: '囤东西是因为心里没底。放过那些吃灰的教程吧，哪怕只写一行烂代码，也比收藏一万个完美方案强。',
     scores: { anxiety: 75, logic: 70, action: 30, emptiness: 50 }
   },
   extra: {
@@ -367,7 +383,7 @@ const identityTypes = {
     scores: { anxiety: 80, logic: 50, action: 70, emptiness: 75 }
   },
   quant: {
-    id: 'quant', icon: '📈', name: '量化玄学信徒', sub: '试图用算法和换手率来掌控失控的生活',
+    id: 'quant', icon: '📈', name: '量化玄学信徒', sub: '试图用K线和复盘来掌控失控的生活',
     quote: '「一切都可以被量化，除了我那跌跌不休的运气和余额。」',
     note: '试图给混乱的生活建立一套算法，本身就是一种勇敢。但偶尔也要允许系统出现无法捕捉的 Bug，那叫生活。',
     scores: { anxiety: 85, logic: 100, action: 65, emptiness: 40 }
@@ -381,7 +397,7 @@ const identityTypes = {
   migratory: {
     id: 'migratory', icon: '🚙', name: '候鸟式躺平者', sub: '上班只为筹措下一次自驾游的路费',
     quote: '「我上班不是为了创造价值，是为了给我的远方筹集电费。」',
-    note: '别人活在当下，你活在“下一个假期”。有盼头是好事，但别忘了，哪怕是充电桩之间的赶路，也是人生的一部分。',
+    note: '别人活在当下，你活在”下一个假期”。有盼头是好事，但别忘了，哪怕是路上的奔波，也是人生的一部分。',
     scores: { anxiety: 40, logic: 60, action: 75, emptiness: 50 }
   },
   npc: {
@@ -499,8 +515,8 @@ function showResult() {
   const peerBars = document.getElementById('peerBars');
   const dimMap = [
     { key: 'anxiety', label: '内耗指数', color: '#ff7c7c' },
-    { key: 'logic', label: '逻辑自洽', color: '#7cbfff' },
-    { key: 'action', label: '执行力', color: '#6bde8a' },
+    { key: 'logic', label: '爱琢磨', color: '#7cbfff' },
+    { key: 'action', label: '行动力', color: '#6bde8a' },
     { key: 'emptiness', label: '虚无感', color: '#b57eff' }
   ];
   peerBars.innerHTML = '';
@@ -516,6 +532,11 @@ function showResult() {
       <div class="peer-pct">${val}%</div>`;
     peerBars.appendChild(row);
   });
+
+  // 生成二维码
+  const testUrl = window.location.href.split('?')[0];
+  const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&color=7cbfff&bg=fff&data=${encodeURIComponent(testUrl)}`;
+  document.getElementById('qrCode').src = qrSrc;
 
   showScreen('result');
 }
