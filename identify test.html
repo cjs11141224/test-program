@@ -22,13 +22,16 @@
       --dim-blue: #7b9db5;
       --dim-green: #7aa886;
       --dim-purple: #9b8cb5;
+      /* 主题色 - 默认 rust，后续 JS 会动态覆盖 */
+      --accent: var(--rust);
+      --accent-light: var(--sand);
     }
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
       background: var(--paper);
       color: var(--ink);
-      min-height: 100vh;
+      min-height: 100dvh;
       overflow-x: hidden;
       -webkit-font-smoothing: antialiased;
     }
@@ -36,7 +39,7 @@
     .container {
       max-width: 480px;
       margin: 0 auto;
-      min-height: 100vh;
+      min-height: 100dvh;
       display: flex;
       flex-direction: column;
       position: relative;
@@ -93,9 +96,9 @@
     #quiz { gap: 0; padding-top: 24px; }
     .quiz-header { display: flex; align-items: center; gap: 14px; margin-bottom: 28px; }
     .progress-track { flex: 1; height: 3px; background: var(--sand); border-radius: 2px; overflow: hidden; }
-    .progress-fill { height: 100%; background: var(--rust); border-radius: 2px; transition: width 0.4s ease; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-light)); border-radius: 2px; transition: width 0.4s ease; }
     .quiz-step { font-size: 12px; color: var(--stone); white-space: nowrap; font-weight: 500; }
-    .question-label { font-size: 11px; color: var(--rust); margin-bottom: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+    .question-label { font-size: 11px; color: var(--accent); margin-bottom: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
     .question-text {
       font-family: Georgia, "Times New Roman", serif;
       font-size: 22px; font-weight: 400; line-height: 1.5;
@@ -111,14 +114,15 @@
       cursor: pointer; transition: all 0.2s; line-height: 1.6;
       box-shadow: 0 1px 2px rgba(0,0,0,0.03);
     }
-    .opt-btn:hover { border-color: var(--rust); background: #fdf8f4; }
-    .opt-btn:active { background: var(--sand); }
+    .opt-btn:hover { border-color: var(--accent); background: #fdf8f4; transform: translateY(-1px); }
+    .opt-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .opt-btn:active { transform: scale(0.98); background: var(--sand); }
     .prev-btn {
       margin-top: 20px; padding: 12px; border-radius: 8px;
       background: transparent; border: 1px solid var(--border); color: var(--stone);
       font-size: 13px; cursor: pointer; transition: all 0.2s;
     }
-    .prev-btn:hover { border-color: var(--rust); color: var(--rust); }
+    .prev-btn:hover { border-color: var(--accent); color: var(--accent); }
 
     /* =====  思考中  ===== */
     #thinking { justify-content: center; align-items: center; gap: 20px; text-align: center; }
@@ -133,12 +137,13 @@
       background: var(--card); border: 1px solid var(--border);
       border-radius: 16px; padding: 28px 24px;
       box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+      border-top: 3px solid var(--accent);
     }
     .result-badge {
       display: inline-flex; align-items: center; gap: 6px;
       padding: 4px 12px; border-radius: 14px;
-      background: var(--sand); border: none;
-      font-size: 11px; color: var(--rust); margin-bottom: 20px;
+      background: var(--accent); border: none;
+      font-size: 11px; color: #fff; margin-bottom: 20px;
       font-weight: 600; letter-spacing: 0.5px;
     }
     .result-type-icon { font-size: 40px; margin-bottom: 8px; line-height: 1; }
@@ -157,7 +162,7 @@
     .result-main-quote::before {
       content: '"'; display: block;
       font-family: Georgia, serif;
-      font-size: 48px; color: var(--sand); line-height: 0.6;
+      font-size: 48px; color: var(--accent-light); line-height: 0.6;
       margin-bottom: 8px;
     }
     .peer-section { margin-bottom: 20px; }
@@ -190,13 +195,19 @@
     .save-btn { background: var(--ink); color: #fff; }
     .save-btn:hover { background: #4a3f36; }
     .share-btn { background: var(--card); color: var(--ink); border: 1px solid var(--border); }
-    .share-btn:hover { border-color: var(--rust); }
+    .share-btn:hover { border-color: var(--accent); }
     .retest-btn {
       width: 100%; padding: 14px; border-radius: 10px;
       background: transparent; border: 1px solid var(--border); color: var(--stone);
       font-size: 13px; cursor: pointer; margin-top: 10px; transition: all 0.25s;
     }
     .retest-btn:hover { border-color: var(--ink); color: var(--ink); }
+    .friend-btn {
+      width: 100%; padding: 14px; border-radius: 10px;
+      background: var(--accent); border: none; color: #fff;
+      font-size: 13px; cursor: pointer; margin-top: 10px; transition: all 0.25s;
+    }
+    .friend-btn:hover { opacity: 0.9; }
 
     #toast {
       position: fixed; bottom: 60px; left: 50%; transform: translateX(-50%);
@@ -206,6 +217,50 @@
       pointer-events: none;
     }
     #toast.show { opacity: 1; }
+
+    /* =====  考朋友弹窗  ===== */
+    #friend-modal {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5); z-index: 1000;
+      display: none; justify-content: center; align-items: flex-end;
+    }
+    #friend-modal.show { display: flex; }
+    .friend-sheet {
+      background: var(--card); border-radius: 20px 20px 0 0;
+      padding: 24px; width: 100%; max-width: 480px;
+      animation: slideUp 0.3s ease;
+    }
+    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    .sheet-title { font-size: 16px; font-weight: 600; color: var(--ink); margin-bottom: 16px; text-align: center; }
+    .sheet-desc { font-size: 13px; color: var(--stone); margin-bottom: 20px; text-align: center; }
+    .friend-questions { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+    .fq-btn {
+      padding: 16px; border-radius: 10px;
+      background: var(--paper); border: 1px solid var(--border);
+      color: var(--ink); font-size: 13px; text-align: left;
+      cursor: pointer; transition: all 0.2s; line-height: 1.6;
+    }
+    .fq-btn:hover { border-color: var(--accent); background: var(--card); }
+    .fq-label { font-size: 11px; color: var(--accent); font-weight: 600; margin-bottom: 4px; }
+    .sheet-close {
+      width: 100%; padding: 14px; border-radius: 10px;
+      background: transparent; border: 1px solid var(--border); color: var(--stone);
+      font-size: 14px; cursor: pointer; transition: all 0.25s;
+    }
+    .sheet-close:hover { border-color: var(--ink); color: var(--ink); }
+
+    /* =====  彩蛋特效  ===== */
+    .egg-burst {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.7); z-index: 2000;
+      display: none; justify-content: center; align-items: center;
+      flex-direction: column; gap: 20px;
+    }
+    .egg-burst.show { display: flex; animation: fadeIn 0.5s ease; }
+    .egg-burst-icon { font-size: 80px; animation: eggPop 0.6s ease; }
+    @keyframes eggPop { 0% { transform: scale(0); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
+    .egg-burst-title { font-size: 24px; font-weight: 700; color: #fff; }
+    .egg-burst-sub { font-size: 14px; color: rgba(255,255,255,0.7); }
   </style>
 </head>
 <body>
@@ -213,8 +268,8 @@
 
   <div class="screen active" id="home">
     <div class="logo-icon">&sect;</div>
-    <div class="main-title">碳基生物生存检测</div>
-    <div class="main-desc">
+    <div class="main-title">当代人生状态测试</div>
+    <div class="main-desc" id="mainDesc">
       大家看起来都在走主线剧情<br>
       只有你感觉自己像个临时加塞的 NPC？<br><br>
       <strong style="color:var(--rust)">这不是你的问题。世界本来就是个草台班子。</strong>
@@ -222,9 +277,9 @@
     <div class="question-count">
       <span class="count-pill">8 道题</span>
       <span class="count-pill">约 2 分钟</span>
-      <span class="count-pill">8 种身份</span>
+      <span class="count-pill" id="typeCount">8 种身份</span>
     </div>
-    <button class="start-btn" onclick="startQuiz()">开始测试</button>
+    <button class="start-btn" id="startBtn">开始测试</button>
     <div class="home-note">仅限自嘲，拒绝贩卖焦虑。</div>
   </div>
 
@@ -236,13 +291,13 @@
     <div class="question-label" id="questionLabel">状态读取中...</div>
     <div class="question-text" id="questionText"></div>
     <div class="options" id="options"></div>
-    <button class="prev-btn" id="prevBtn" onclick="prevQ()">← 上一题</button>
+    <button class="prev-btn" id="prevBtn">← 上一题</button>
   </div>
 
   <div class="screen" id="thinking">
     <div class="think-icon">&middot;&middot;&middot;</div>
     <div class="think-title">正在解析...</div>
-    <div class="think-sub">不用紧张，大家都挺拧巴的。</div>
+    <div class="think-sub" id="thinkSub">不用紧张，大家都挺拧巴的。</div>
   </div>
 
   <div class="screen" id="result">
@@ -265,17 +320,79 @@
       <div class="share-hint">长按保存图片 · 寻找世界上另一个你</div>
     </div>
     <div class="result-actions">
-      <button class="action-btn save-btn" onclick="saveImg()">保存报告</button>
-      <button class="action-btn share-btn" onclick="shareText()">复制文案</button>
+      <button class="action-btn save-btn" id="saveImgBtn">保存报告</button>
+      <button class="action-btn share-btn" id="shareTextBtn">复制文案</button>
     </div>
-    <button class="retest-btn" onclick="retest()">重新测试</button>
+    <button class="friend-btn" id="friendModalBtn">🎯 考考朋友</button>
+    <button class="retest-btn" id="retestBtn">重新测试</button>
   </div>
 
+</div>
+
+<!-- 考朋友弹窗 -->
+<div id="friend-modal">
+  <div class="friend-sheet">
+    <div class="sheet-title">🎯 考考你朋友</div>
+    <div class="sheet-desc">选一道灵魂拷问发给朋友，看TA怎么选？</div>
+    <div class="friend-questions" id="friendQuestions"></div>
+    <button class="sheet-close" id="closeFriendModalBtn">取消</button>
+  </div>
+</div>
+
+<!-- 彩蛋弹窗 -->
+<div id="egg-burst" class="egg-burst">
+  <div class="egg-burst-icon" id="eggIcon"></div>
+  <div class="egg-burst-title" id="eggTitle"></div>
+  <div class="egg-burst-sub" id="eggSub"></div>
 </div>
 
 <div id="toast"></div>
 
 <script>
+// ========== 首页随机文案 ==========
+const homeSlogans = [
+  {
+    emoji: "🤔",
+    text: "大家看起来都在走主线剧情<br>只有你感觉自己像个临时加塞的 NPC？<br><br><strong style=\"color:var(--rust)\">这不是你的问题。世界本来就是个草台班子。</strong>"
+  },
+  {
+    emoji: "🫠",
+    text: "躺又躺不平，卷又卷不赢<br>间歇性踌躇满志，持续性混吃等死？<br><br><strong style=\"color:var(--rust)\">没关系，先看完这个测试再说。</strong>"
+  },
+  {
+    emoji: "💀",
+    text: "收藏夹吃灰三年了<br>今天来直面一下自己的真实状态？<br><br><strong style=\"color:var(--rust)\">看完不准骂我。</strong>"
+  },
+  {
+    emoji: "🌊",
+    text: "每天都活得像被生活推着走<br>想知道自己到底是什么类型的人吗？<br><br><strong style=\"color:var(--rust)\">8道题，还你一个真实的自己。</strong>"
+  },
+  {
+    emoji: "🎭",
+    text: "表面岁月静好，背地里一地鸡毛<br>来测测你到底是哪种「当代人」？<br><br><strong style=\"color:var(--rust)\">仅限自嘲，拒绝玻璃心。</strong>"
+  },
+  {
+    emoji: "✨",
+    text: "不想奋斗了，想直接退休<br>但又觉得自己还能再抢救一下？<br><br><strong style=\"color:var(--rust)\">先做完这套题再决定躺还是卷。</strong>"
+  }
+];
+
+// ========== 主题色配置 ==========
+const themeColors = {
+  derelict:      { accent: '#9b8cb5', light: '#e8e4f0' },
+  hustler:       { accent: '#d4856b', light: '#fae8e0' },
+  hoarder:       { accent: '#7aa886', light: '#e4f0e8' },
+  extra:         { accent: '#b85c3a', light: '#f5e8e0' },
+  quant:         { accent: '#7b9db5', light: '#e4ecf4' },
+  involutionist: { accent: '#c45c5c', light: '#f8e4e4' },
+  migratory:     { accent: '#5c8a8a', light: '#e4f0f0' },
+  npc:           { accent: '#8c8070', light: '#f0ece6' },
+  // 彩蛋身份
+  awakened:      { accent: '#e6b800', light: '#fff8e0' },
+  zen_master:    { accent: '#6b8e6b', light: '#e8f0e8' },
+  paradox:       { accent: '#8e6b8e', light: '#f0e8f0' }
+};
+
 // ========== 题库 ==========
 const questions = [
   {
@@ -283,7 +400,7 @@ const questions = [
     q: '当你刷到一个看起来很有搞头的新趋势（比如副业路子、投资风口）时，你的第一反应是？',
     opts: [
       '迅速分析利弊和可行性，一旦觉得胜算不大就果断放弃',
-      '立刻收藏教程和攻略，列入”有空就学”清单，然后再也没打开过',
+      '立刻收藏教程和攻略，列入"有空就学"清单，然后再也没打开过',
       '马上热血上头开始搞，但遇到第一个困难就顺势放弃了',
       '扫一眼就划走，反正这些东西跟我没什么关系'
     ]
@@ -302,7 +419,7 @@ const questions = [
     label: '比较心',
     q: '看到曾经不如你的人突然混得比你好，你的内心弹幕是？',
     opts: [
-      '”凭什么？”然后开始复盘自己的人生选择是不是哪里出了问题',
+      '"凭什么？"然后开始复盘自己的人生选择是不是哪里出了问题',
       '极度焦虑，连夜给自己制定逆袭计划，坚持两天后恢复原样',
       '毫无波澜，我只关心下个假期去哪玩、路线规划好了没',
       '觉得谁都不容易，大家只是把好的一面晒出来了而已'
@@ -332,7 +449,7 @@ const questions = [
     label: '压力来了',
     q: '当多个麻烦同时爆发（工作出错、感情出问题、家里出事）时，你的第一反应是？',
     opts: [
-      '表面：”好的我来处理”，内心：”我想原地消失”',
+      '表面："好的我来处理"，内心："我想原地消失"',
       '试图在混乱中找出规律和逻辑，因为承认生活是随机的实在太可怕了',
       '肾上腺素飙升，骂骂咧咧地进入战斗状态，解决后觉得自己真是欠的',
       '彻底消失。去外面走走，天塌下来也等我先喘口气再说'
@@ -340,7 +457,7 @@ const questions = [
   },
   {
     label: '努力这件事',
-    q: '你和”努力”这两个字的关系，最接近哪一种？',
+    q: '你和"努力"这两个字的关系，最接近哪一种？',
     opts: [
       '我更喜欢做准备——列清单、买装备、看攻略，而不是真的开始干',
       '只有在火烧眉毛或极度焦虑时，才会爆发几天高强度的努力',
@@ -382,7 +499,7 @@ const identityTypes = {
   },
   extra: {
     id: 'extra', icon: '🎭', name: '草台班子群演', sub: '每天都在假装自己是个情绪稳定的大人',
-    quote: '「每天最累的不是干活，是维持‘我看起来很专业’的人设。」',
+    quote: '「每天最累的不是干活，是维持"我看起来很专业"的人设。」',
     note: '恭喜你发现了世界的真相：这世界就是个巨大的草台班子。没有谁是完全准备好的，大家都是一边崩溃一边假装能行。',
     scores: { anxiety: 80, logic: 50, action: 70, emptiness: 75 }
   },
@@ -395,25 +512,54 @@ const identityTypes = {
   involutionist: {
     id: 'involutionist', icon: '🌪️', name: '被迫营业的卷王', sub: '你恨内卷，但你更怕掉队',
     quote: '「我不想赢，我只是不敢输。」',
-    note: '你很累，因为你同时承受着“想躺”的清醒和“必须卷”的恐惧。试着放过自己，跑在中间也没关系的。',
+    note: '你很累，因为你同时承受着"想躺"的清醒和"必须卷"的恐惧。试着放过自己，跑在中间也没关系的。',
     scores: { anxiety: 95, logic: 70, action: 90, emptiness: 55 }
   },
   migratory: {
     id: 'migratory', icon: '🚙', name: '候鸟式躺平者', sub: '上班只为筹措下一次自驾游的路费',
     quote: '「我上班不是为了创造价值，是为了给我的远方筹集电费。」',
-    note: '别人活在当下，你活在”下一个假期”。有盼头是好事，但别忘了，哪怕是路上的奔波，也是人生的一部分。',
+    note: '别人活在当下，你活在"下一个假期"。有盼头是好事，但别忘了，哪怕是路上的奔波，也是人生的一部分。',
     scores: { anxiety: 40, logic: 60, action: 75, emptiness: 50 }
   },
   npc: {
     id: 'npc', icon: '🧍', name: 'NPC型玩家', sub: '按时触发打卡代码的背景板角色',
     quote: '「别人在玩《模拟人生》，我只是一段按时触发的循环代码。」',
-    note: '世界上 99% 的人都是 NPC，但哪怕是 NPC，也可以给自己加上“每天喝一杯好咖啡”的隐藏设定。',
+    note: '世界上 99% 的人都是 NPC，但哪怕是 NPC，也可以给自己加上"每天喝一杯好咖啡"的隐藏设定。',
     scores: { anxiety: 30, logic: 40, action: 35, emptiness: 90 }
   }
 };
 
+// ========== 彩蛋身份 ==========
+const hiddenTypes = {
+  // 全部选第一个 - 理性分析型觉醒
+  awakened: {
+    id: 'awakened', icon: '⚡', name: '觉醒的分析者', sub: '清醒到可怕，执行力也在觉醒中',
+    quote: '「别人在焦虑，你已经在拆解问题了。」',
+    note: '你是那种"想清楚再动手"的人。这不是拖延，是策略。关键是：想清楚之后，真的要动手。',
+    scores: { anxiety: 70, logic: 100, action: 60, emptiness: 30 },
+    check: (answers) => answers.every(a => a === 0)
+  },
+  // 全部选最后一个 - 彻底通透
+  zen_master: {
+    id: 'zen_master', icon: '🧘', name: '人间清醒大师', sub: '看透一切，选择最舒服的姿势躺着',
+    quote: '「不是不能卷，是懒得配合你们演戏。」',
+    note: '你已经到了"无欲则刚"的境界。但偶尔认真一下，你会发现世界还是有回应的。',
+    scores: { anxiety: 20, logic: 70, action: 30, emptiness: 40 },
+    check: (answers) => answers.every(a => a === 3)
+  },
+  // 全部选中间（1或2交替）- 纠结本体
+  paradox: {
+    id: 'paradox', icon: '🔄', name: '纠结悖论体', sub: '选A还是选B？答案永远是"看情况"',
+    quote: '「我思考的样子.jpg.jpg.jpg...」',
+    note: '你是那种每个选项都能找到理由的人。试着做一次不分析直接选的练习，你会发现：其实没那么难。',
+    scores: { anxiety: 85, logic: 80, action: 25, emptiness: 60 },
+    check: (answers) => answers.every(a => a === 1 || a === 2)
+  }
+};
+
 // ========== 选项到身份的映射矩阵 ==========
-// 每一题的 4 个选项，分别给对应的身份加 1 分
+// 每道题的每个选项会为若干身份类型加分（第1个选项 → 第1个数组，以此类推）
+// 最后一题权重最高：得分相同时，优先选择最后一题覆盖的身份
 const scoringMap = [
   [['quant','derelict'], ['hoarder'], ['hustler'], ['npc']], // Q1
   [['npc','involutionist'], ['extra','derelict'], ['involutionist'], ['quant']], // Q2
@@ -425,33 +571,66 @@ const scoringMap = [
   [['quant','derelict'], ['extra','npc'], ['hoarder','hustler'], ['migratory','involutionist']] // Q8
 ];
 
+// ========== 常量 ==========
+const TRANSITION_DELAY = 250;
+const THINKING_DURATION = 2000;
+const EGG_BURST_DURATION = 2500;
+const TOAST_DURATION = 2000;
+const TOTAL_QUESTIONS = questions.length;
+
+// ========== 通用工具 ==========
+function shuffleArr(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
 // ========== 状态 ==========
 let currentQ = 0;
 let answers = [];
 let scores = { derelict:0, hustler:0, hoarder:0, extra:0, quant:0, involutionist:0, migratory:0, npc:0 };
+let currentTypeId = 'npc';
+let toastTimer = null;
+
+function resetScores() {
+  Object.keys(scores).forEach(k => scores[k] = 0);
+}
+
+// ========== 初始化 ==========
+function initHome() {
+  const slogan = homeSlogans[Math.floor(Math.random() * homeSlogans.length)];
+  document.getElementById('mainDesc').innerHTML = slogan.text;
+  // 更新类型数量（含彩蛋）
+  const totalTypes = Object.keys(identityTypes).length + Object.keys(hiddenTypes).length;
+  document.getElementById('typeCount').textContent = `${totalTypes} 种身份`;
+}
 
 function startQuiz() {
   currentQ = 0;
   answers = [];
-  for(let key in scores) scores[key] = 0;
+  resetScores();
   showScreen('quiz');
   renderQ();
 }
 
 function renderQ() {
   const q = questions[currentQ];
-  document.getElementById('progressFill').style.width = ((currentQ) / 8 * 100) + '%';
-  document.getElementById('quizStep').textContent = `${currentQ + 1}/8`;
+  document.getElementById('progressFill').style.width = ((currentQ) / TOTAL_QUESTIONS * 100) + '%';
+  document.getElementById('quizStep').textContent = `${currentQ + 1}/${TOTAL_QUESTIONS}`;
   document.getElementById('questionLabel').textContent = q.label;
   document.getElementById('questionText').textContent = q.q;
   
   const optsEl = document.getElementById('options');
-  optsEl.innerHTML = '';
+  optsEl.replaceChildren();
   q.opts.forEach((opt, i) => {
     const btn = document.createElement('button');
     btn.className = 'opt-btn';
     btn.textContent = opt;
-    btn.onclick = () => selectOpt(i);
+    btn.setAttribute('tabindex', '0');
+    btn.addEventListener('click', () => selectOpt(i));
     optsEl.appendChild(btn);
   });
   document.getElementById('prevBtn').style.display = currentQ > 0 ? 'block' : 'none';
@@ -460,7 +639,7 @@ function renderQ() {
 function selectOpt(idx) {
   answers[currentQ] = idx;
   setTimeout(() => {
-    if (currentQ < 7) {
+    if (currentQ < TOTAL_QUESTIONS - 1) {
       currentQ++;
       renderQ();
     } else {
@@ -468,7 +647,7 @@ function selectOpt(idx) {
       calculateResult();
       showThinking();
     }
-  }, 250);
+  }, TRANSITION_DELAY);
 }
 
 function prevQ() {
@@ -476,7 +655,7 @@ function prevQ() {
 }
 
 function calculateResult() {
-  for(let key in scores) scores[key] = 0;
+  resetScores();
   answers.forEach((ansIdx, qIdx) => {
     const typesToAdd = scoringMap[qIdx][ansIdx];
     typesToAdd.forEach(t => scores[t]++);
@@ -485,37 +664,65 @@ function calculateResult() {
 
 function showThinking() {
   showScreen('thinking');
-  setTimeout(() => { showResult(); }, 2500);
+  const subtitles = [
+    '正在读懂你...',
+    '你的灵魂正在被解码...',
+    '答案马上浮出水面...',
+    '正在绘制你的精神图谱...',
+    '比你自己更懂你...'
+  ];
+  const sub = subtitles[Math.floor(Math.random() * subtitles.length)];
+  document.getElementById('thinkSub').textContent = sub;
+  setTimeout(() => { showResult(); }, THINKING_DURATION);
 }
 
 function showResult() {
-  // 找出得分最高的身份
-  let maxScore = -1;
   let finalId = 'npc';
-  for (let id in scores) {
-    if (scores[id] > maxScore) {
-      maxScore = scores[id];
+  let isEgg = false;
+
+  // 先检查彩蛋身份 —— 全部选首项/末项/中间项触发
+  for (const id of Object.keys(hiddenTypes)) {
+    if (hiddenTypes[id].check(answers)) {
       finalId = id;
+      isEgg = true;
+      break;
     }
   }
 
-  // 最后一题权重兜底：如果最高分有很多个平局，让最后一题的选项优先
-  const lastQTypes = scoringMap[7][answers[7]];
-  if (lastQTypes.includes(finalId) === false) {
-     for(let id of lastQTypes) {
-         if(scores[id] === maxScore) finalId = id; 
-     }
+  // 如果没有彩蛋，用累计得分最高项 + 最后一题权重兜底
+  if (!isEgg) {
+    let maxScore = -1;
+    for (const id of Object.keys(scores)) {
+      if (scores[id] > maxScore) {
+        maxScore = scores[id];
+        finalId = id;
+      }
+    }
+    const lastQTypes = scoringMap[TOTAL_QUESTIONS - 1][answers[TOTAL_QUESTIONS - 1]];
+    if (!lastQTypes.includes(finalId)) {
+      for (const id of lastQTypes) {
+        if (scores[id] === maxScore) { finalId = id; break; }
+      }
+    }
   }
 
-  const type = identityTypes[finalId];
+  currentTypeId = finalId;
+  const type = isEgg ? hiddenTypes[finalId] : identityTypes[finalId];
 
+  // 设置主题色
+  const colors = themeColors[finalId] || themeColors.extra;
+  document.documentElement.style.setProperty('--accent', colors.accent);
+  document.documentElement.style.setProperty('--accent-light', colors.light);
+
+  // 渲染结果
+  document.getElementById('resultBadge').textContent = isEgg ? '✨ 隐藏身份' : '你的真实身份';
   document.getElementById('resultIcon').textContent = type.icon;
   document.getElementById('resultName').textContent = type.name;
   document.getElementById('resultSub').textContent = type.sub;
   document.getElementById('resultQuote').textContent = type.quote;
   document.getElementById('resultNote').textContent = type.note;
 
-  // 渲染五维图数据条
+  // 渲染四维图（纯 DOM 操作，避免 innerHTML）
   const peerBars = document.getElementById('peerBars');
   const dimMap = [
     { key: 'anxiety', label: '内耗指数', color: '#d4856b' },
@@ -523,29 +730,123 @@ function showResult() {
     { key: 'action', label: '行动力', color: '#7aa886' },
     { key: 'emptiness', label: '虚无感', color: '#9b8cb5' }
   ];
-  peerBars.innerHTML = '';
+  peerBars.replaceChildren();
   dimMap.forEach(d => {
     const val = type.scores[d.key];
     const row = document.createElement('div');
     row.className = 'peer-row';
-    row.innerHTML = `
-      <div class="peer-label">${d.label}</div>
-      <div class="peer-bar-bg">
-        <div class="peer-bar-fill" style="width:${val}%;background:${d.color}"></div>
-      </div>
-      <div class="peer-pct">${val}%</div>`;
+
+    const labelEl = document.createElement('div');
+    labelEl.className = 'peer-label';
+    labelEl.textContent = d.label;
+
+    const barBg = document.createElement('div');
+    barBg.className = 'peer-bar-bg';
+    const barFill = document.createElement('div');
+    barFill.className = 'peer-bar-fill';
+    barFill.style.width = val + '%';
+    barFill.style.background = d.color;
+    barBg.appendChild(barFill);
+
+    const pctEl = document.createElement('div');
+    pctEl.className = 'peer-pct';
+    pctEl.textContent = val + '%';
+
+    row.appendChild(labelEl);
+    row.appendChild(barBg);
+    row.appendChild(pctEl);
     peerBars.appendChild(row);
   });
 
-  // 生成二维码
+  // 生成二维码（含加载失败处理）
   const testUrl = window.location.href.split('?')[0];
-  const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&color=b85c3a&bg=fff&data=${encodeURIComponent(testUrl)}`;
-  document.getElementById('qrCode').src = qrSrc;
+  const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&color=${colors.accent.replace('#','')}&bg=ffffff&data=${encodeURIComponent(testUrl)}`;
+  const qrImg = document.getElementById('qrCode');
+  qrImg.src = qrSrc;
+  qrImg.onerror = () => {
+    qrImg.style.display = 'none';
+    document.getElementById('qrSection').querySelector('.qr-hint').textContent = '二维码生成失败，请直接分享链接';
+  };
 
   showScreen('result');
+
+  // 彩蛋特效
+  if (isEgg) {
+    setTimeout(() => showEggBurst(type), 300);
+  }
 }
 
+function showEggBurst(type) {
+  const burst = document.getElementById('egg-burst');
+  document.getElementById('eggIcon').textContent = type.icon;
+  document.getElementById('eggTitle').textContent = type.name;
+  document.getElementById('eggSub').textContent = '🎉 恭喜你触发了隐藏身份！';
+  burst.classList.add('show');
+  setTimeout(() => {
+    burst.classList.remove('show');
+  }, EGG_BURST_DURATION);
+}
+
+// ========== 考朋友功能 ==========
+function showFriendModal() {
+  const modal = document.getElementById('friend-modal');
+  const container = document.getElementById('friendQuestions');
+  container.replaceChildren();
+
+  // Fisher-Yates 洗牌，选3道题展示
+  const pool = shuffleArr([0, 2, 5, TOTAL_QUESTIONS - 1]);
+  const indices = pool.slice(0, 3);
+  indices.forEach(idx => {
+    const q = questions[idx];
+    const btn = document.createElement('button');
+    btn.className = 'fq-btn';
+
+    const labelDiv = document.createElement('div');
+    labelDiv.className = 'fq-label';
+    labelDiv.textContent = q.label;
+    btn.appendChild(labelDiv);
+    btn.appendChild(document.createTextNode(q.q));
+
+    btn.addEventListener('click', () => shareQuestion(idx));
+    container.appendChild(btn);
+  });
+
+  modal.classList.add('show');
+}
+
+function closeFriendModal() {
+  document.getElementById('friend-modal').classList.remove('show');
+}
+
+function shareQuestion(idx) {
+  const q = questions[idx];
+  // 如果用户还没答过这道题，用默认文案
+  const myAnswer = answers[idx] !== undefined
+    ? q.opts[answers[idx]]
+    : '... 我还没来得及回答这道题';
+  const text = `🧪 来挑战我！
+
+「${q.q}」
+
+我的答案：${myAnswer}
+
+你呢？快来测测你是哪种人 👇
+${window.location.href.split('?')[0]}`;
+
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(() => {
+      showToast('已复制！发给朋友挑战TA');
+      closeFriendModal();
+    });
+  }
+}
+
+// ========== 保存 & 分享 ==========
 function saveImg() {
+  if (typeof html2canvas === 'undefined') {
+    showToast('保存功能加载中，请稍后再试或长按截图');
+    return;
+  }
   const card = document.getElementById('resultCard');
   html2canvas(card, { backgroundColor: null, scale: 2 }).then(canvas => {
     const link = document.createElement('a');
@@ -554,15 +855,22 @@ function saveImg() {
     link.click();
     showToast('报告已保存！');
   }).catch(() => {
-    showToast('保存失败，请长按截图分享');
+    showToast('图片生成失败，请长按截图分享');
   });
 }
 
 function shareText() {
-  const icon = document.getElementById('resultIcon').textContent;
-  const name = document.getElementById('resultName').textContent;
-  const sub = document.getElementById('resultSub').textContent;
-  const text = `我测了【碳基生物生存检测】\n\n鉴定结果：${icon} ${name}\n「${sub}」\n\n这不是我的问题，世界本来就是个草台班子。\n你也来扫描一下真实状态？🔗`;
+  const type = identityTypes[currentTypeId] || hiddenTypes[currentTypeId];
+  const icon = type.icon;
+  const name = type.name;
+  const sub = type.sub;
+  const text = `我测了【当代人生状态测试】
+
+鉴定结果：${icon} ${name}
+「${sub}」
+
+这不是我的问题，世界本来就是个草台班子。
+你也来扫描一下真实状态？🔗`;
   
   if (navigator.clipboard) {
     navigator.clipboard.writeText(text).then(() => {
@@ -571,7 +879,14 @@ function shareText() {
   }
 }
 
-function retest() { showScreen('home'); }
+function retest() {
+  // 重置主题色
+  document.documentElement.style.setProperty('--accent', '#b85c3a');
+  document.documentElement.style.setProperty('--accent-light', '#f0e8dd');
+  // 刷新首页文案
+  initHome();
+  showScreen('home');
+}
 
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -582,8 +897,48 @@ function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg;
   t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2000);
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), TOAST_DURATION);
 }
+
+// ========== 事件绑定 ==========
+function bindEvents() {
+  // 首页
+  document.getElementById('startBtn').addEventListener('click', startQuiz);
+
+  // 答题
+  document.getElementById('prevBtn').addEventListener('click', prevQ);
+
+  // 结果页
+  document.getElementById('saveImgBtn').addEventListener('click', saveImg);
+  document.getElementById('shareTextBtn').addEventListener('click', shareText);
+  document.getElementById('friendModalBtn').addEventListener('click', showFriendModal);
+  document.getElementById('retestBtn').addEventListener('click', retest);
+  document.getElementById('closeFriendModalBtn').addEventListener('click', closeFriendModal);
+
+  // 弹窗背景关闭
+  document.getElementById('friend-modal').addEventListener('click', (e) => {
+    if (e.target.id === 'friend-modal') closeFriendModal();
+  });
+  document.getElementById('egg-burst').addEventListener('click', () => {
+    document.getElementById('egg-burst').classList.remove('show');
+  });
+
+  // 键盘导航：1-4 数字键选择选项
+  document.addEventListener('keydown', (e) => {
+    const quizScreen = document.getElementById('quiz');
+    if (!quizScreen.classList.contains('active')) return;
+    const key = parseInt(e.key, 10);
+    if (key >= 1 && key <= 4) {
+      selectOpt(key - 1);
+    } else if (e.key === 'ArrowLeft') {
+      prevQ();
+    }
+  });
+}
+
+bindEvents();
+initHome();
 </script>
 </body>
 </html>
